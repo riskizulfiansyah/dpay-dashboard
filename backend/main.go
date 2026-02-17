@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"log"
+	"math/rand"
 	"time"
 
 	"github.com/durianpay/fullstack-boilerplate/internal/api"
@@ -61,6 +62,31 @@ func initDB(db *sql.DB) error {
 		  password_hash TEXT NOT NULL,
 		  role TEXT NOT NULL
 		);`,
+		`CREATE TABLE IF NOT EXISTS merchants (
+		  id INTEGER PRIMARY KEY AUTOINCREMENT,
+		  name TEXT NOT NULL,
+		  email TEXT NOT NULL UNIQUE,
+		  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+		);`,
+		`CREATE TABLE IF NOT EXISTS orders (
+		  id INTEGER PRIMARY KEY AUTOINCREMENT,
+		  merchant_id INTEGER NOT NULL,
+		  subtotal INTEGER NOT NULL,
+		  status TEXT NOT NULL,
+		  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+		);`,
+		`CREATE TABLE IF NOT EXISTS payments (
+		  id INTEGER PRIMARY KEY AUTOINCREMENT,
+		  order_id INTEGER NOT NULL,
+		  amount INTEGER NOT NULL,
+		  status TEXT NOT NULL,
+		  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+		);`,
+		`CREATE INDEX IF NOT EXISTS idx_orders_merchant_id ON orders(merchant_id);`,
+		`CREATE INDEX IF NOT EXISTS idx_payments_order_id ON payments(order_id);`,
 	}
 	for _, s := range stmts {
 		if _, err := db.Exec(s); err != nil {
@@ -86,7 +112,126 @@ func initDB(db *sql.DB) error {
 		}
 	}
 
+	// seed merchant if not exists
+	var cntMerchant int
+	rowMerchant := db.QueryRow("SELECT COUNT(1) FROM merchants")
+	if err := rowMerchant.Scan(&cntMerchant); err != nil {
+		return err
+	}
+	if cntMerchant == 0 {
+		if _, err := db.Exec("INSERT INTO merchants(name, email) VALUES (?, ?)", "merchant1", "merchant1@merchant.com"); err != nil {
+			return err
+		}
+		if _, err := db.Exec("INSERT INTO merchants(name, email) VALUES (?, ?)", "merchant2", "merchant2@merchant.com"); err != nil {
+			return err
+		}
+	}
+
+	// seed order if not exists
+	var cntOrder int
+	rowOrder := db.QueryRow("SELECT COUNT(1) FROM orders")
+	if err := rowOrder.Scan(&cntOrder); err != nil {
+		return err
+	}
+	if cntOrder == 0 {
+		if err := seedOrders(db); err != nil {
+			return err
+		}
+	}
+
+	// seed payment if not exists
+	var cntPayment int
+	rowPayment := db.QueryRow("SELECT COUNT(1) FROM payments")
+	if err := rowPayment.Scan(&cntPayment); err != nil {
+		return err
+	}
+	if cntPayment == 0 {
+		if err := seedPayments(db); err != nil {
+			return err
+		}
+	}
+
 	const dbLifetime = time.Minute * 5
 	db.SetConnMaxLifetime(dbLifetime)
+	return nil
+}
+
+func seedOrders(db *sql.DB) error {
+	var cntOrder int
+	err := db.QueryRow("SELECT COUNT(1) FROM orders").Scan(&cntOrder)
+	if err != nil {
+		return err
+	}
+
+	if cntOrder > 0 {
+		return nil
+	}
+
+	startDate := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
+	endDate := time.Now()
+
+	statuses := []string{"pending", "paid", "shipped", "completed", "cancelled"}
+
+	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	for i := 0; i < 100; i++ {
+		// random timestamp between startDate and endDate
+		randomTime := startDate.Add(
+			time.Duration(rng.Int63n(endDate.Unix()-startDate.Unix())) * time.Second,
+		)
+
+		subtotal := rng.Intn(900000) + 10000 // 10,000 - 910,000
+		status := statuses[rng.Intn(len(statuses))]
+		merchantID := rng.Intn(2) + 1 // 1–2
+
+		_, err := db.Exec(`
+			INSERT INTO orders (subtotal, merchant_id, status, created_at, updated_at)
+			VALUES (?, ?, ?, ?, ?)
+		`, subtotal, merchantID, status, randomTime, randomTime)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func seedPayments(db *sql.DB) error {
+	var cntPayment int
+	err := db.QueryRow("SELECT COUNT(1) FROM payments").Scan(&cntPayment)
+	if err != nil {
+		return err
+	}
+
+	if cntPayment > 0 {
+		return nil
+	}
+
+	startDate := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
+	endDate := time.Now()
+
+	statuses := []string{"completed", "processing", "failed"}
+
+	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	for i := 0; i < 120; i++ {
+		randomTime := startDate.Add(
+			time.Duration(rng.Int63n(endDate.Unix()-startDate.Unix())) * time.Second,
+		)
+
+		orderID := rng.Intn(100) + 1 // 1–100
+		amount := rng.Intn(900000) + 10000
+		status := statuses[rng.Intn(len(statuses))]
+
+		_, err := db.Exec(`
+			INSERT INTO payments 
+			(order_id, amount, status, created_at, updated_at)
+			VALUES (?, ?, ?, ?, ?)
+		`, orderID, amount, status, randomTime, randomTime)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
