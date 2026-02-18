@@ -18,18 +18,25 @@
         <tbody>
           <tr v-for="payment in payments" :key="payment.id">
             <td class="payment-table-id">{{ payment.id }}</td>
-            <td class="payment-table-merchant">{{ payment.merchantName }}</td>
-            <td class="payment-table-date">{{ payment.date }}</td>
+            <td class="payment-table-merchant">{{ payment.merchant }}</td>
+            <td class="payment-table-date">{{ new Date(payment.created_at).toLocaleDateString() }}</td>
             <td class="payment-table-amount">{{ payment.amount }}</td>
             <td>
               <span
                 class="payment-table-status"
-                :class="payment.status === 'Success' ? 'payment-table-status-success' : 'payment-table-status-failed'"
+                :class="{
+                  'payment-table-status-success': payment.status === 'completed',
+                  'payment-table-status-failed': payment.status === 'failed',
+                  'payment-table-status-processing': payment.status === 'processing'
+                }"
               >
                 <span class="payment-table-status-dot"></span>
                 {{ payment.status }}
               </span>
             </td>
+          </tr>
+          <tr v-if="payments.length === 0">
+            <td colspan="5" class="payment-table-empty">No payments found</td>
           </tr>
         </tbody>
       </table>
@@ -40,18 +47,45 @@
 <script setup lang="ts">
 interface Payment {
   id: string;
-  merchantName: string;
-  date: string;
+  merchant: string;
+  created_at: string;
   amount: string;
-  status: 'Success' | 'Failed';
+  status: string;
 }
 
-const payments: Payment[] = [
-  { id: 'PAY-001', merchantName: 'TechStore Inc', date: 'Feb 18, 2026', amount: '$1,250.00', status: 'Success' },
-  { id: 'PAY-002', merchantName: 'Fashion Hub', date: 'Feb 18, 2026', amount: '$890.50', status: 'Success' },
-  { id: 'PAY-003', merchantName: 'FoodMart', date: 'Feb 17, 2026', amount: '$425.00', status: 'Failed' },
-  { id: 'PAY-004', merchantName: 'BookWorld', date: 'Feb 17, 2026', amount: '$1,100.00', status: 'Success' },
-  { id: 'PAY-005', merchantName: 'Gadget Zone', date: 'Feb 16, 2026', amount: '$2,340.00', status: 'Success' },
-  { id: 'PAY-006', merchantName: 'Home Decor', date: 'Feb 16, 2026', amount: '$675.00', status: 'Failed' },
-];
+defineProps<{
+  payments: Payment[];
+}>();
 </script>
+
+<style scoped>
+/* Add style for processing status if not exists, reusing existing styles logic */
+.payment-table-status-processing {
+  background-color: #eff6ff;
+  color: #3b82f6;
+}
+.payment-table-status-processing .payment-table-status-dot {
+  background-color: #3b82f6;
+}
+
+.payment-table-status-success {
+    background-color: #ecfdf5;
+    color: #10b981;
+}
+.payment-table-status-success .payment-table-status-dot {
+    background-color: #10b981;
+}
+
+.payment-table-status-failed {
+    background-color: #fef2f2;
+    color: #ef4444;
+}
+.payment-table-status-failed .payment-table-status-dot {
+    background-color: #ef4444;
+}
+.payment-table-empty {
+    text-align: center;
+    padding: 24px;
+    color: #6b7280;
+}
+</style>

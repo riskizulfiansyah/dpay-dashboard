@@ -53,3 +53,23 @@ export const authApi = {
     return response;
   }),
 };
+
+export interface Payment {
+  id: string;
+  merchant: string; // The API returns 'merchant', mapped to 'merchant' in PaymentTable
+  created_at: string;
+  amount: string;
+  status: string;
+}
+
+export interface Pagination {
+  limit: number;
+  page: number;
+  total_count: number;
+  total_pages: number;
+}
+
+export interface PaymentListResponse {
+  pagination: Pagination;
+  payments: Payment[];
+}

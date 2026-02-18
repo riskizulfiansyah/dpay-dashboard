@@ -25,7 +25,7 @@ export default defineNuxtConfig({
   nitro: {
     routeRules: {
       '/api/**': {
-        proxy: `${apiUrl}/dashboard/v1/**`
+        proxy: `${apiUrl}/**`
       }
     }
   }

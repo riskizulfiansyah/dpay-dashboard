@@ -16,10 +16,7 @@
             <h1 class="dashboard-header-title">Overview Dashboard</h1>
           </div>
           <div class="dashboard-header-actions">
-            <button class="dashboard-filter-btn">
-              <FilterIcon :size="18" />
-              <span>Filter</span>
-            </button>
+            <PaymentFilter v-model="filterStatus" />
           </div>
         </header>
 
@@ -59,7 +56,7 @@
         </section>
 
         <section class="dashboard-table-section">
-          <PaymentTable />
+          <PaymentTable :payments="payments" />
         </section>
 
         <section class="dashboard-chart-section">
@@ -77,7 +74,20 @@ definePageMeta({
 
 const { isExpanded, checkScreenSize, toggle } = useSidebar();
 const authStore = useAuthStore();
+const filterStatus = ref('All');
 
+const { data: paymentsData } = await useAsyncData('dashboard-payments', () => api<PaymentListResponse>('/dashboard/v1/payments', {
+  query: {
+    limit: 5,
+    status: filterStatus.value === 'All' ? undefined : filterStatus.value
+  }
+}), {
+  watch: [filterStatus]
+});
+
+const payments = computed(() => {
+  return paymentsData.value?.payments || [];
+});
 
 onMounted(() => {
   checkScreenSize();
