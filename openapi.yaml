@@ -2,8 +2,8 @@ openapi: 3.0.3
 info:
   title: MyGoLangApp API
   version: "1.0.0"
-servers:
-  - url: http://localhost:8080
+
+
 components:
   securitySchemes:
     bearerAuth:
@@ -66,6 +66,27 @@ components:
         created_at:
           type: string
           format: date-time
+    
+    PaymentStatusCount:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "completed"
+        count:
+          type: integer
+          example: 10
+    
+    PaymentSummaryResponse:
+      type: object
+      properties:
+        status_counts:
+          type: array
+          items:
+            $ref: '#/components/schemas/PaymentStatusCount'
+        total:
+          type: integer
+          example: 30
 
     Pagination:
       type: object
@@ -117,6 +138,33 @@ components:
                 message: "Unauthenticated: missing or invalid token"
 
 paths:
+  /dashboard/v1/payments/summary:
+    get:
+      summary: Get payment summary
+      parameters:
+        - in: query
+          name: from_date
+          schema:
+            type: string
+            format: date-time
+          description: filter payments created on or after this date
+        - in: query
+          name: to_date
+          schema:
+            type: string
+            format: date-time
+          description: filter payments created on or before this date
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentSummaryResponse'
+        "401":
+          $ref: '#/components/responses/UnauthorizedError'
+
   /dashboard/v1/auth/login:
     post:
       summary: Login with email + password

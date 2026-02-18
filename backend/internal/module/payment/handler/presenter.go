@@ -44,3 +44,21 @@ func toPaymentResponse(payments []entity.Payment) []openapigen.Payment {
 	}
 	return responsePayments
 }
+
+func toPaymentSummaryResponse(summary *entity.PaymentSummary) openapigen.PaymentSummaryResponse {
+	statusCounts := make([]openapigen.PaymentStatusCount, 0, len(summary.StatusCounts))
+	for _, sc := range summary.StatusCounts {
+		status := sc.Status
+		count := sc.Count
+		statusCounts = append(statusCounts, openapigen.PaymentStatusCount{
+			Status: &status,
+			Count:  &count,
+		})
+	}
+
+	total := summary.Total
+	return openapigen.PaymentSummaryResponse{
+		StatusCounts: &statusCounts,
+		Total:        &total,
+	}
+}

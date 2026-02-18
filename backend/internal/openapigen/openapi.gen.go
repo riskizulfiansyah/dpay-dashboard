@@ -47,6 +47,18 @@ type Payment struct {
 	Status    *string    `json:"status,omitempty"`
 }
 
+// PaymentStatusCount defines model for PaymentStatusCount.
+type PaymentStatusCount struct {
+	Count  *int    `json:"count,omitempty"`
+	Status *string `json:"status,omitempty"`
+}
+
+// PaymentSummaryResponse defines model for PaymentSummaryResponse.
+type PaymentSummaryResponse struct {
+	StatusCounts *[]PaymentStatusCount `json:"status_counts,omitempty"`
+	Total        *int                  `json:"total,omitempty"`
+}
+
 // User defines model for User.
 type User struct {
 	Email *string `json:"email,omitempty"`
@@ -99,6 +111,15 @@ type GetDashboardV1PaymentsParams struct {
 	ToDate *time.Time `form:"to_date,omitempty" json:"to_date,omitempty"`
 }
 
+// GetDashboardV1PaymentsSummaryParams defines parameters for GetDashboardV1PaymentsSummary.
+type GetDashboardV1PaymentsSummaryParams struct {
+	// FromDate filter payments created on or after this date
+	FromDate *time.Time `form:"from_date,omitempty" json:"from_date,omitempty"`
+
+	// ToDate filter payments created on or before this date
+	ToDate *time.Time `form:"to_date,omitempty" json:"to_date,omitempty"`
+}
+
 // PostDashboardV1AuthLoginJSONRequestBody defines body for PostDashboardV1AuthLogin for application/json ContentType.
 type PostDashboardV1AuthLoginJSONRequestBody PostDashboardV1AuthLoginJSONBody
 
@@ -110,6 +131,9 @@ type ServerInterface interface {
 	// List of payments
 	// (GET /dashboard/v1/payments)
 	GetDashboardV1Payments(w http.ResponseWriter, r *http.Request, params GetDashboardV1PaymentsParams)
+	// Get payment summary
+	// (GET /dashboard/v1/payments/summary)
+	GetDashboardV1PaymentsSummary(w http.ResponseWriter, r *http.Request, params GetDashboardV1PaymentsSummaryParams)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
@@ -125,6 +149,12 @@ func (_ Unimplemented) PostDashboardV1AuthLogin(w http.ResponseWriter, r *http.R
 // List of payments
 // (GET /dashboard/v1/payments)
 func (_ Unimplemented) GetDashboardV1Payments(w http.ResponseWriter, r *http.Request, params GetDashboardV1PaymentsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get payment summary
+// (GET /dashboard/v1/payments/summary)
+func (_ Unimplemented) GetDashboardV1PaymentsSummary(w http.ResponseWriter, r *http.Request, params GetDashboardV1PaymentsSummaryParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -223,6 +253,47 @@ func (siw *ServerInterfaceWrapper) GetDashboardV1Payments(w http.ResponseWriter,
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetDashboardV1Payments(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetDashboardV1PaymentsSummary operation middleware
+func (siw *ServerInterfaceWrapper) GetDashboardV1PaymentsSummary(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetDashboardV1PaymentsSummaryParams
+
+	// ------------- Optional query parameter "from_date" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "from_date", r.URL.Query(), &params.FromDate)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "from_date", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "to_date" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "to_date", r.URL.Query(), &params.ToDate)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "to_date", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetDashboardV1PaymentsSummary(w, r, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -351,6 +422,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/dashboard/v1/payments", wrapper.GetDashboardV1Payments)
 	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/dashboard/v1/payments/summary", wrapper.GetDashboardV1PaymentsSummary)
+	})
 
 	return r
 }
@@ -358,25 +432,26 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/6RWW2/cNhP9KwS/7yFB5ZU2SYFAQIG6tyBFAhht3T64hk1Lo12m4iXDkeOtsf+9GFLr",
-	"lSwtfMmTveJw5py5Hd7KyhnvLFgKsryVXqEyQIDxV3BI/LeGUKH2pJ2VpfzRGaOOArAtQS3YSjQa2jos",
-	"BB86K7wiArShFJdHFQLbXSi6FC88QqNvxOXRpfhOsN+X4lIZ11k+tE6MzlWoXv5tZSY1x/3cAW5kJq0y",
-	"IMsELpOhWoNRjBJulPEtHw1CykzSxkd7Qm1XcrvdZhIheGcDRJYf3Erb3/ov/KFylsBG5sr7VleKmeef",
-	"AtO/HUT8P0IjS/m/fJ/EPJ2G/DQApmDj7CFQh1aQ+wesULYWXQAU2jYOTYwjt5k8URsDlj7oQM8C5tF5",
-	"QNLQF3WlbfL9AOiTveU2kz6hiD40gQkPX48X+G6fdIWoNnK7/+CuPkFFc4npLwsmzR5Orepo7VD/C/XP",
-	"iA4fkYG+BSLQLt4HS2wEdUxQZ4zCjSzlRx2CtivhOPXXqtV1qojM5LVquz7bNcjyTbHMpIEQ1Irxn469",
-	"lsIc8hQpPq5XEr2ZnBzvY2lnRaN0CzWH2kWtEGo2UG2Q+3iR/13Oxs2QWA2mJRLsq6MtwYr7dkB5OFiP",
-	"Zz8dO566z51GLsVZgrGPcj5pEB6CYduOWbTaaBphe1XMsfD3KcxyJUeqvah4C42Ni+KwObsOI/Nvp8bb",
-	"WV5pSiak0h4cZ1y1uoLv+9+LyplpZjM5WHflrUybRJayVgRHpA3M3dH1ONByzsgAVmt1H9PH/qs4nrsT",
-	"SFE3TkwUmRZYLDLh0VWQuibjvklNPdswk9TFpTrJGxilW/5nggVdC7MHqUmnJzOLKpMBqg41bX7n4Uoh",
-	"r0AhII/n/tcvu7z/+tcfO2FiT+l0T3BN5NOw89aPIDSlxG7euQ/Kro69F8cn73kZAYa0CpaLYlEwdOfB",
-	"Kq9lKV8visVryU1O64gqr1VYXzmFdX69zHlU85bFLabMhVhGTlwcqvc1L10X6KfdpT+XTCjKoUzTCoF+",
-	"cPXmK7TncG28CuGLw3q+CsNdkXwMbpzPysn+CmEH91X+VVEcWsN3dvn4KbDN5Jti+fCtqVLFrrkTm+hV",
-	"fNG0FpGK+EbcUWHLcdmGqruCmZq9g2HJTnbm2ejxdjYPem+Sx/fTNrv/ukvjK1wjeiDixcPT+/LQGy3t",
-	"gqEOTkp9H8AurK4POI0HT3K4AmE7cwUoGodi8ByaDxBFYxiihkZ1LUX1MNpq05lZJZnG7sO6RsQHlPAQ",
-	"48OByEnWZkOzvhl108dmYXoakka3FIOndhG9ZghnuYyq4UNa6yBYNQ7Aa9CZi/58D/ExevNUPFfQOIQH",
-	"AZF7Jpzz52yHuVf5V+6IXlnivA415eycIQ5WiA40mMnQvy4Br3fT3mHba0uZ562rVLt2gcq3xdtCbs+3",
-	"/wUAAP//AKnocekNAAA=",
+	"H4sIAAAAAAAC/+xX32/bNhD+VwhuDy2mWHLTvQgYsKzbgg4pEKzL9pAFCSOdbHbij5KnNF7g/304UrYk",
+	"S27idNjTngKLx/u++8HvLg+8MMoaDRo9zx+4FU4oQHDhlzcO6W8JvnDSojSa5/yNUUoceSBbhJKRFask",
+	"1KWfMTo0mlmBCE77nN0cFQ7I7lrgDXthHVTynt0c3bDvGPl9yW6EMo2mQ23Y4Fz44uWfmidcEu7HBtyK",
+	"J1wLBTyP5BLuiyUoQSzhXihb01EPkiccVzbYo5N6wdfrdcIdeGu0hxDlmVlI/Wv7hT4URiPoELmwtpaF",
+	"oMjTD57Cf+ghfu2g4jn/Ku2SmMZTn154cBFsmD0H2DjN0PwFmgldssaDY1JXxqmAw9cJPxcrBRrPpMdn",
+	"EbPOWHAooS3qQuro+xHS553lOuE2sgg+JILyj18PF+hum3ThnFjxdffB3H6AAqcS015mFDR5uNCiwaVx",
+	"8m8of3LOuCdkoG2BQLQJ90EjGUEZEtQoJdyK5/yd9F7qBTOU+jtRyzJWhCf8TtRNm+0SeP46mydcgfdi",
+	"Qfwvhl5zpvZ5CiE+rVdieBM5OemwpNGsErKGkqA2qIWDkgxE7XmHF+Lf5mzYDDGq3msJAbbVkRphQX3b",
+	"C7n/sJ4e/fjZ0av72EhHpbiMNDqUq1GD0CPot+0wiloqiQNur7KpKOxuCJOxokFRXxekQkPjLNtvTq79",
+	"wPzbsfF6Mq74SkZBRR0cZlzUsoDv29+zwqhxZhPek7v8gUcl4TkvBcIRSgVTd2Q5BJpPGSlwxVLscnrX",
+	"fmUnU3c8CmyGiQlDpgYaFgmzzhQQuyahvolNPdkw+1L3PkC82WRrt8HHZZyq4md5HkYnykpfqYeUIlRs",
+	"sIPVtB/sSFjbZhxEcZw9rQ/DhBpxBSVk8DcqrDM1TB7EFz8+mVD9hHsoGidx9Z6ijJC3IBw40rru18+b",
+	"Jv7lj982U548xdOuPEtEG5WTRmggITF26erUnAm9OLGWnZy/JWUH56OuzmfZLCPqxoIWVvKcH8+y2TEn",
+	"xcBlYJWWwi9vjXBlejdPSffSmjaFkDLjQ4tR4oJCvS1pghmPP24u/T6ngMJuwaP0gccfTLn6gkG+vzZW",
+	"eP/JuHK6Cn3hjT56N64mZ3N3BV0DuyvTqyzb171bu3S4V60T/jqbP35rPPZD12wnd/DKPklcshAK+4Zt",
+	"QyHLYdn6K8wCJmp2Cv2SnW/Mk8EmfDlNujNJwzK6TnZX5fjwmalYS4S9eFwKX+5beKNg9ZeKUal3CWxg",
+	"ZbnHaTg4yOECmG7ULThWGcd6u+U0QJjAfYgSKtHUGEaxklqqRk2O5TF2C2sqFvSTWQj4sAc57giT0LQs",
+	"KHHfYtOUP4xJJWsM4LFdWDuAmdFURlHRIS6lZzSC99CrnFHX7XlH8SnD+1A+t1AZB48SQvNMOlfPUYep",
+	"f3G+UCPayRLea3+mXF4RxZ6ESI+9N+k/oxvp9tZB+tFuBGMZ+b+NDm6jf+W/8T2b2jrMuv+i504BtzNg",
+	"85XQ/wkAAP//Dm7ZpYERAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
