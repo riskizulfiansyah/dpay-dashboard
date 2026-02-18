@@ -22,14 +22,14 @@
     </div>
 
     <nav class="sidebar-nav">
-      <NuxtLink to="/" class="sidebar-nav-item sidebar-nav-item-active">
+      <NuxtLink to="/" class="sidebar-nav-item" active-class="sidebar-nav-item-active">
         <OverviewIcon :size="20" />
         <span v-show="isExpanded" class="sidebar-nav-text">Overview</span>
       </NuxtLink>
-      <div class="sidebar-nav-item sidebar-nav-item-disabled">
+      <NuxtLink to="/payments" class="sidebar-nav-item" active-class="sidebar-nav-item-active">
         <PaymentIcon :size="20" />
         <span v-show="isExpanded" class="sidebar-nav-text">Payments</span>
-      </div>
+      </NuxtLink>
     </nav>
 
     <div class="sidebar-footer">

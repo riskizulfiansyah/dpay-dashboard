@@ -1,50 +1,63 @@
 <template>
   <div class="payment-table-card">
-    <div class="payment-table-header">
-      <h3 class="payment-table-title">Latest Payments</h3>
-      <a href="#" class="payment-table-view-all">View All Transactions</a>
+    <div v-if="title || showViewAll" class="payment-table-header">
+      <h3 v-if="title" class="payment-table-title">{{ title }}</h3>
+      <NuxtLink v-if="showViewAll" to="/payments" class="payment-table-view-all">View All Transactions</NuxtLink>
     </div>
-    <div class="payment-table-wrapper">
-      <table class="payment-table">
-        <thead>
-          <tr>
-            <th>PAYMENT ID</th>
-            <th>MERCHANT NAME</th>
-            <th>DATE</th>
-            <th>AMOUNT</th>
-            <th>STATUS</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="payment in payments" :key="payment.id">
-            <td class="payment-table-id">{{ payment.id }}</td>
-            <td class="payment-table-merchant">{{ payment.merchant }}</td>
-            <td class="payment-table-date">{{ new Date(payment.created_at).toLocaleDateString() }}</td>
-            <td class="payment-table-amount">{{ payment.amount }}</td>
-            <td>
-              <span
-                class="payment-table-status"
-                :class="{
-                  'payment-table-status-success': payment.status === 'completed',
-                  'payment-table-status-failed': payment.status === 'failed',
-                  'payment-table-status-processing': payment.status === 'processing'
-                }"
-              >
-                <span class="payment-table-status-dot"></span>
-                {{ payment.status }}
-              </span>
-            </td>
-          </tr>
-          <tr v-if="payments.length === 0">
-            <td colspan="5" class="payment-table-empty">No payments found</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    
+    <BaseTable
+      :columns="columns"
+      :data="payments"
+      :sort="sort"
+      :pagination="pagination"
+      @update:sort="handleSort"
+      @page-change="handlePageChange"
+    >
+      <!-- Custom Id Cell -->
+      <template #cell-id="{ value }">
+        <span class="payment-table-id">{{ value }}</span>
+      </template>
+
+      <!-- Custom Merchant Cell -->
+      <template #cell-merchant="{ value }">
+        <span class="payment-table-merchant">{{ value }}</span>
+      </template>
+
+      <!-- Custom Date Cell -->
+      <template #cell-created_at="{ value }">
+        <span class="payment-table-date">{{ new Date(value).toLocaleDateString() }}</span>
+      </template>
+
+      <!-- Custom Amount Cell -->
+      <template #cell-amount="{ value }">
+        <span class="payment-table-amount">{{ value }}</span>
+      </template>
+
+      <!-- Custom Status Cell -->
+      <template #cell-status="{ value }">
+        <span
+          class="payment-table-status"
+          :class="{
+            'payment-table-status-success': value === 'completed',
+            'payment-table-status-failed': value === 'failed',
+            'payment-table-status-processing': value === 'processing'
+          }"
+        >
+          <span class="payment-table-status-dot"></span>
+          {{ value }}
+        </span>
+      </template>
+
+      <template #empty>
+        No payments found
+      </template>
+    </BaseTable>
   </div>
 </template>
 
 <script setup lang="ts">
+import BaseTable from './BaseTable.vue';
+
 interface Payment {
   id: string;
   merchant: string;
@@ -53,13 +66,54 @@ interface Payment {
   status: string;
 }
 
-defineProps<{
+interface SortConfig {
+  field: string;
+  direction: 'asc' | 'desc';
+}
+
+interface PaginationConfig {
+  page: number;
+  totalPages: number;
+  totalCount?: number;
+}
+
+const props = withDefaults(defineProps<{
   payments: Payment[];
+  title?: string;
+  showViewAll?: boolean;
+  sort?: SortConfig;
+  pagination?: PaginationConfig;
+}>(), {
+  title: 'Latest Payments',
+  showViewAll: true,
+  sort: undefined,
+  pagination: undefined,
+});
+
+const emit = defineEmits<{
+  (e: 'update:sort', sort: SortConfig): void;
+  (e: 'page-change', page: number): void;
 }>();
+
+const columns = [
+  { header: 'PAYMENT ID', key: 'id', sortable: true },
+  { header: 'MERCHANT NAME', key: 'merchant', sortable: false },
+  { header: 'DATE', key: 'created_at', sortable: true },
+  { header: 'AMOUNT', key: 'amount', sortable: true },
+  { header: 'STATUS', key: 'status', sortable: true },
+];
+
+const handleSort = (sort: SortConfig) => {
+  emit('update:sort', sort);
+};
+
+const handlePageChange = (page: number) => {
+  emit('page-change', page);
+};
 </script>
 
 <style scoped>
-/* Add style for processing status if not exists, reusing existing styles logic */
+/* Reuse existing styles for status badges */
 .payment-table-status-processing {
   background-color: #eff6ff;
   color: #3b82f6;
@@ -82,10 +136,5 @@ defineProps<{
 }
 .payment-table-status-failed .payment-table-status-dot {
     background-color: #ef4444;
-}
-.payment-table-empty {
-    text-align: center;
-    padding: 24px;
-    color: #6b7280;
 }
 </style>
