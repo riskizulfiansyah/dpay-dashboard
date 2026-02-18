@@ -18,7 +18,7 @@
       type="password"
       label="Password"
       placeholder="Enter your password"
-      :error="errors.password"
+      :error="errors.password || apiError"
       :show-icon="true"
     >
       <template #icon>
@@ -40,15 +40,18 @@
 <script setup lang="ts">
 const email = ref('');
 const password = ref('');
-const isLoading = ref(false);
 const errors = reactive({
   email: '',
   password: '',
 });
+const apiError = ref('');
 
-const handleSubmit = () => {
+const { login, isLoading } = useAuth();
+
+const handleSubmit = async () => {
   errors.email = '';
   errors.password = '';
+  apiError.value = '';
   
   if (!email.value) {
     errors.email = 'Email is required';
@@ -60,8 +63,10 @@ const handleSubmit = () => {
     return;
   }
   
-  isLoading.value = true;
-  
-  console.log('Login submitted:', { email: email.value, password: password.value });
+  try {
+    await login({ email: email.value, password: password.value });
+  } catch (error) {
+    apiError.value = error instanceof Error ? error.message : 'Login failed';
+  }
 };
 </script>

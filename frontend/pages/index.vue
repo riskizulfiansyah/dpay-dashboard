@@ -71,7 +71,13 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  middleware: 'auth',
+});
+
 const { isExpanded, checkScreenSize, toggle } = useSidebar();
+const authStore = useAuthStore();
+
 
 onMounted(() => {
   checkScreenSize();
