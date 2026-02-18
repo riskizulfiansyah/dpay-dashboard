@@ -1,0 +1,18 @@
+:root {
+  --color-floral-white: #fffcf2;
+  --color-pale-silver: #ccc5b9;
+  --color-dark-lava: #403d39;
+  --color-dark-lava-light: #6b665c;
+  --color-eerie-black: #252422;
+  --color-burnt-orange: #eb5e28;
+
+  --bg-primary: var(--color-floral-white);
+  --bg-secondary: var(--color-floral-white);
+  --bg-card: #ffffff;
+  --text-primary: var(--color-eerie-black);
+  --text-secondary: var(--color-dark-lava);
+  --text-muted: var(--color-pale-silver);
+  --border-color: var(--color-pale-silver);
+  --accent-color: var(--color-burnt-orange);
+  --accent-hover: #d14d1f;
+}

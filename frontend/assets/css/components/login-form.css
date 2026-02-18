@@ -1,0 +1,22 @@
+.login-form {
+  @apply flex flex-col gap-5;
+}
+
+.login-form-button {
+  @apply w-full py-3 px-4 rounded-lg flex items-center justify-center gap-2;
+  background-color: var(--color-burnt-orange);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.login-form-button:hover {
+  background-color: #d14d1f;
+}
+
+.login-form-button:focus {
+  @apply outline-none;
+}
+
+.login-form-button:disabled {
+  @apply opacity-50 cursor-not-allowed;
+}

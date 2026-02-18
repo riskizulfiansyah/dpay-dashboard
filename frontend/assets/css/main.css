@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+@theme {
+  --color-floral-white: #fffcf2;
+  --color-pale-silver: #ccc5b9;
+  --color-dark-lava: #403d39;
+  --color-eerie-black: #252422;
+  --color-burnt-orange: #eb5e28;
+}
+
+@import "./variables.css";
+@import "./components/input-field.css";
+@import "./components/login-form.css";
+@import "./components/login-page.css";

@@ -1,0 +1,48 @@
+.input-field {
+  @apply w-full px-4 py-3 border rounded-md;
+  background-color: #ffffff;
+  border-color: var(--color-pale-silver);
+  color: var(--color-eerie-black);
+}
+
+.input-field::placeholder {
+  color: var(--color-pale-silver);
+}
+
+.input-field:focus {
+  @apply outline-none;
+  border-color: var(--color-burnt-orange);
+}
+
+.input-field-error {
+  border-color: #ef4444;
+}
+
+.input-field-error:focus {
+  border-color: #ef4444;
+}
+
+.input-label {
+  @apply block mb-2;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-dark-lava);
+}
+
+.input-wrapper {
+  @apply relative;
+}
+
+.input-icon {
+  @apply absolute left-4 top-1/2 -translate-y-1/2;
+  color: var(--color-pale-silver);
+}
+
+.input-field-with-icon {
+  @apply pl-12;
+}
+
+.input-error-message {
+  @apply mt-1 text-sm;
+  color: #ef4444;
+}
