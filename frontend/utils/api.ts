@@ -73,3 +73,13 @@ export interface PaymentListResponse {
   pagination: Pagination;
   payments: Payment[];
 }
+
+export interface PaymentStatusCount {
+  count: number;
+  status: string;
+}
+
+export interface PaymentSummaryResponse {
+  status_counts: PaymentStatusCount[];
+  total: number;
+}

@@ -23,8 +23,7 @@
         <section class="dashboard-stats">
           <StatCard
             title="Total Payments"
-            value="12,458"
-            percentage="+12.5%"
+            :value="formattedTotalPayments"
             variant="default"
           >
             <template #icon>
@@ -33,9 +32,8 @@
           </StatCard>
 
           <StatCard
-            title="Success Rate"
-            value="98.2%"
-            percentage="+2.1%"
+            title="Success"
+            :value="formattedSuccessPayments"
             variant="success"
           >
             <template #icon>
@@ -45,8 +43,7 @@
 
           <StatCard
             title="Failed"
-            value="223"
-            percentage="-5.3%"
+            :value="formattedFailedPayments"
             variant="danger"
           >
             <template #icon>
@@ -76,7 +73,7 @@ const { isExpanded, checkScreenSize, toggle } = useSidebar();
 const authStore = useAuthStore();
 const filterStatus = ref('All');
 
-const { data: paymentsData } = await useAsyncData('dashboard-payments', () => api<PaymentListResponse>('/dashboard/v1/payments', {
+const { data: paymentsData, refresh: refreshPayments } = await useAsyncData('dashboard-payments', () => api<PaymentListResponse>('/dashboard/v1/payments', {
   query: {
     limit: 5,
     status: filterStatus.value === 'All' ? undefined : filterStatus.value
@@ -85,8 +82,25 @@ const { data: paymentsData } = await useAsyncData('dashboard-payments', () => ap
   watch: [filterStatus]
 });
 
+const { data: summaryData, refresh: refreshSummary } = await useAsyncData('dashboard-summary', () => api<PaymentSummaryResponse>('/dashboard/v1/payments/summary'));
+
+
 const payments = computed(() => {
   return paymentsData.value?.payments || [];
+});
+
+const formattedTotalPayments = computed(() => {
+  return summaryData.value?.total?.toLocaleString() || '0';
+});
+
+const formattedFailedPayments = computed(() => {
+  const failedCount = summaryData.value?.status_counts?.find(s => s.status === 'failed')?.count || 0;
+  return failedCount.toLocaleString();
+});
+
+const formattedSuccessPayments = computed(() => {
+  const completedCount = summaryData.value?.status_counts?.find(s => s.status === 'completed')?.count || 0;
+  return completedCount.toLocaleString();
 });
 
 onMounted(() => {
