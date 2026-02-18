@@ -68,7 +68,8 @@ To checking openapi documentations, you can visit this url after backend running
 openapi.yaml
 
 # You can view it using any OpenAPI/Swagger editor or VS Code extension.
-# No built-in Swagger UI is currently served by the backend.
+# You can also visit the built-in Swagger UI at:
+http://localhost:8080/docs
 ```
 
 Login to frontend by visiting:
