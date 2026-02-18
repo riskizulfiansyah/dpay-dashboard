@@ -43,7 +43,7 @@ export interface LoginResponse {
 }
 
 export const authApi = {
-  login: (data: LoginRequest) => api<LoginResponse>('/auth/login', {
+  login: (data: LoginRequest) => api<LoginResponse>('/dashboard/v1/auth/login', {
     method: 'POST',
     body: data,
   }).then((response) => {
