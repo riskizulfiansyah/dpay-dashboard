@@ -7,48 +7,79 @@ list of tools version of your machine:
 ```bash
 go version go1.25.5 darwin/arm64
 node v24.13.1
+make
+sqlite3 (optional)
 ```
 
 Install all related requirements:
 
 ```bash
-Add here
+# Backend
+cd backend
+cp env.sample .env
+make tool-openapi
+make openapi-gen
+make dep
+make gen-secret
+
+# Frontend
+cd ../frontend
+cp .env.example .env
+npm install
 ```
 
 How to run backend server on local:
 
 ```bash
-Add here
+cd backend
+make run
+# Runs on localhost:8080 (default)
+# Database seeds automatically on first run
 ```
 
 How to run backend server on production build:
 
 ```bash
-Add here
+cd backend
+make build
+./bin/mygolangapp
 ```
 
 How to run frontend on local:
 
 ```bash
-Add here
+cd frontend
+npm run dev
+# Runs on localhost:3000
 ```
 
 How to run frontend on production build:
 
 ```bash
-Add here
+cd frontend
+npm run build
+npm run preview
 ```
 
 To checking openapi documentations, you can visit this url after backend running.
 
 ```bash
-Add here
+# The OpenAPI spec is located at:
+openapi.yaml
+
+# You can view it using any OpenAPI/Swagger editor or VS Code extension.
+# No built-in Swagger UI is currently served by the backend.
 ```
 
 Login to frontend by visiting:
 
 ```bash
-Add here
+visit: http://localhost:3000/auth/login
+email: cs@test.com
+password: password
+
+email: operation@test.com
+password: password
 ```
 
 evidences: Add video evidences of your service
