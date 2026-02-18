@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/durianpay/fullstack-boilerplate/internal/openapigen"
+	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/go-chi/chi/v5"
 	oapinethttpmw "github.com/oapi-codegen/nethttp-middleware"
 )
@@ -24,7 +25,7 @@ const (
 	idleTimeout  = 60
 )
 
-func NewServer(apiHandler openapigen.ServerInterface, openapiYamlPath string) *Server {
+func NewServer(apiHandler openapigen.ServerInterface, openapiYamlPath string, jwtSecret []byte) *Server {
 	swagger, err := openapigen.GetSwagger()
 	if err != nil {
 		log.Fatalf("failed to load swagger: %v", err)
@@ -36,6 +37,9 @@ func NewServer(apiHandler openapigen.ServerInterface, openapiYamlPath string) *S
 		api.Use(oapinethttpmw.OapiRequestValidatorWithOptions(
 			swagger,
 			&oapinethttpmw.Options{
+				Options: openapi3filter.Options{
+					AuthenticationFunc: NewAuthenticationFunc(jwtSecret),
+				},
 				DoNotValidateServers:  true,
 				SilenceServersWarning: true,
 			},

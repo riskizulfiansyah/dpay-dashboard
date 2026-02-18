@@ -30,6 +30,14 @@ type Error struct {
 	Message string `json:"message"`
 }
 
+// Pagination defines model for Pagination.
+type Pagination struct {
+	Limit      *int `json:"limit,omitempty"`
+	Page       *int `json:"page,omitempty"`
+	TotalCount *int `json:"total_count,omitempty"`
+	TotalPages *int `json:"total_pages,omitempty"`
+}
+
 // Payment defines model for Payment.
 type Payment struct {
 	Amount    *string    `json:"amount,omitempty"`
@@ -54,7 +62,8 @@ type LoginResponse = User
 
 // PaymentListResponse defines model for PaymentListResponse.
 type PaymentListResponse struct {
-	Payments *[]Payment `json:"payments,omitempty"`
+	Pagination *Pagination `json:"pagination,omitempty"`
+	Payments   *[]Payment  `json:"payments,omitempty"`
 }
 
 // UnauthorizedError defines model for UnauthorizedError.
@@ -76,6 +85,18 @@ type GetDashboardV1PaymentsParams struct {
 
 	// Id payment id
 	Id *string `form:"id,omitempty" json:"id,omitempty"`
+
+	// Page page number for pagination
+	Page *int `form:"page,omitempty" json:"page,omitempty"`
+
+	// Limit number of items per page
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// FromDate filter payments created on or after this date
+	FromDate *time.Time `form:"from_date,omitempty" json:"from_date,omitempty"`
+
+	// ToDate filter payments created on or before this date
+	ToDate *time.Time `form:"to_date,omitempty" json:"to_date,omitempty"`
 }
 
 // PostDashboardV1AuthLoginJSONRequestBody defines body for PostDashboardV1AuthLogin for application/json ContentType.
@@ -165,6 +186,38 @@ func (siw *ServerInterfaceWrapper) GetDashboardV1Payments(w http.ResponseWriter,
 	err = runtime.BindQueryParameter("form", true, false, "id", r.URL.Query(), &params.Id)
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "page" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "page", r.URL.Query(), &params.Page)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "page", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", r.URL.Query(), &params.Limit)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "from_date" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "from_date", r.URL.Query(), &params.FromDate)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "from_date", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "to_date" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "to_date", r.URL.Query(), &params.ToDate)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "to_date", Err: err})
 		return
 	}
 
@@ -305,22 +358,25 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/6RW227bRhD9lcW0DzFKi1KTh4BAgbq3IIUDGG3dPrhGteaOpE25l8wunaiG/r2YXUoi",
-	"TQo2kieJ3LmcM2dmuA9QO+OdRRsDVA/gJUmDESk9BUeRfxWGmrSP2lmo4EdnjDwPyLYRlWArsdLYqDAT",
-	"fOis8DJGJBsqsTyvCdnuHxmX4oUnXOlPYnm+FN8JjnsmltK41vKhdWJwLkN99reFAjTn/dAibaEAKw1C",
-	"lcEVEOoNGsko8ZM0vuGjXkooIG59so+k7Rp2u10BhME7GzCxvHRrbX/r3vCL2tmINjGX3je6lsy8fB+Y",
-	"/kMv49eEK6jgq/JYxDKfhvI6IOVkw+oRxpasiO5ftEJaJdqAJLRdOTIpD+wKuJJbgzZe6hA/C5gn55Gi",
-	"xk7UFC391xFNeAp7l56RdMWTRHILu+MLd/ce6zhFsHMWDJ4jXFvZxo0j/R+qn4kcPYNJJ2UC2iZ/tJGN",
-	"UCWirTGStlDBOx2CtmvhuIT3stEqVxYKuJdN21VNIVSv5osCDIYg14z/ehi1EuZUpETxeZpnehM1uTjm",
-	"0s6KldQNKk61z1oTKjaQTYBjvsT/ULOhqJlVr+sTwU4dbSOuuf96lPsD8nz24/Hh6fnQamIpbjKMY5bb",
-	"UYMcmnlMIc/9EJlsdI3fd8+z2pkxggJ64109QJ4cqEDJiOdRG5zy0WqYaDFlZJDqjXyM6V33VlxM+YQo",
-	"YxuGHtwbDfJyLIQnV2OubsH1zeJPFnZUurRERnVDI3XDf0ZYyDU4eZDFHJ9MDHQBAeuWdNz+zk2YU96h",
-	"JCRu4+PTL/u6//rXH/tFzJHy6ZHgJkafh4K3XAKhYy7s9o27lHZ94b24uHrLQ4sU8sgsZvPZnKE7j1Z6",
-	"DRW8nM1nL6EAL+MmoSqVDJs7J0mV94uSW7pseJmnkrmQZOTCpal7q3g5uRB/2jv9uWBCaf1D7moM8Qen",
-	"tl+wa09r42UIHx2paRX6M5Vj9DxuJ9fu0SVSi4+/at/O56fW1cGuHH76dgW8mi+e9hpv9NQ1h6WcooqP",
-	"Om5EoiK+EQcqbDmUrf91WuOEZm+wL9nV3rwYXFZupkEfTcp0X9gVj28zeXyFW4kOiHjx9PSenbqT5F3Q",
-	"/16MpH4MYJ9WqxNB08HpgLefI/zUBeML5e+WRpKivy5ubhlirzt0iL1yh+4Di3S/F7KlplsbVVk2rpbN",
-	"xoVYvZ6/nsPudvd/AAAA//+YrKvUtAoAAA==",
+	"H4sIAAAAAAAC/6RWW2/cNhP9KwS/7yFB5ZU2SYFAQIG6tyBFAhht3T64hk1Lo12m4iXDkeOtsf+9GFLr",
+	"lSwtfMmTveJw5py5Hd7KyhnvLFgKsryVXqEyQIDxV3BI/LeGUKH2pJ2VpfzRGaOOArAtQS3YSjQa2jos",
+	"BB86K7wiArShFJdHFQLbXSi6FC88QqNvxOXRpfhOsN+X4lIZ11k+tE6MzlWoXv5tZSY1x/3cAW5kJq0y",
+	"IMsELpOhWoNRjBJulPEtHw1CykzSxkd7Qm1XcrvdZhIheGcDRJYf3Erb3/ov/KFylsBG5sr7VleKmeef",
+	"AtO/HUT8P0IjS/m/fJ/EPJ2G/DQApmDj7CFQh1aQ+wesULYWXQAU2jYOTYwjt5k8URsDlj7oQM8C5tF5",
+	"QNLQF3WlbfL9AOiTveU2kz6hiD40gQkPX48X+G6fdIWoNnK7/+CuPkFFc4npLwsmzR5Orepo7VD/C/XP",
+	"iA4fkYG+BSLQLt4HS2wEdUxQZ4zCjSzlRx2CtivhOPXXqtV1qojM5LVquz7bNcjyTbHMpIEQ1Irxn469",
+	"lsIc8hQpPq5XEr2ZnBzvY2lnRaN0CzWH2kWtEGo2UG2Q+3iR/13Oxs2QWA2mJRLsq6MtwYr7dkB5OFiP",
+	"Zz8dO566z51GLsVZgrGPcj5pEB6CYduOWbTaaBphe1XMsfD3KcxyJUeqvah4C42Ni+KwObsOI/Nvp8bb",
+	"WV5pSiak0h4cZ1y1uoLv+9+LyplpZjM5WHflrUybRJayVgRHpA3M3dH1ONByzsgAVmt1H9PH/qs4nrsT",
+	"SFE3TkwUmRZYLDLh0VWQuibjvklNPdswk9TFpTrJGxilW/5nggVdC7MHqUmnJzOLKpMBqg41bX7n4Uoh",
+	"r0AhII/n/tcvu7z/+tcfO2FiT+l0T3BN5NOw89aPIDSlxG7euQ/Kro69F8cn73kZAYa0CpaLYlEwdOfB",
+	"Kq9lKV8visVryU1O64gqr1VYXzmFdX69zHlU85bFLabMhVhGTlwcqvc1L10X6KfdpT+XTCjKoUzTCoF+",
+	"cPXmK7TncG28CuGLw3q+CsNdkXwMbpzPysn+CmEH91X+VVEcWsN3dvn4KbDN5Jti+fCtqVLFrrkTm+hV",
+	"fNG0FpGK+EbcUWHLcdmGqruCmZq9g2HJTnbm2ejxdjYPem+Sx/fTNrv/ukvjK1wjeiDixcPT+/LQGy3t",
+	"gqEOTkp9H8AurK4POI0HT3K4AmE7cwUoGodi8ByaDxBFYxiihkZ1LUX1MNpq05lZJZnG7sO6RsQHlPAQ",
+	"48OByEnWZkOzvhl108dmYXoakka3FIOndhG9ZghnuYyq4UNa6yBYNQ7Aa9CZi/58D/ExevNUPFfQOIQH",
+	"AZF7Jpzz52yHuVf5V+6IXlnivA415eycIQ5WiA40mMnQvy4Br3fT3mHba0uZ562rVLt2gcq3xdtCbs+3",
+	"/wUAAP//AKnocekNAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
