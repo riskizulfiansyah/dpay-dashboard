@@ -7,7 +7,13 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "test:functional": "vitest run tests/functional",
+    "test:e2e": "NUXT_E2E=true playwright test",
+    "test:perf": "lhci autorun --config=lighthouserc.cjs",
+    "test": "bun run test:unit && bun run test:integration && bun run test:functional"
   },
   "dependencies": {
     "@pinia/nuxt": "^0.11.3",
@@ -19,6 +25,13 @@
     "vue-router": "^4.6.4"
   },
   "devDependencies": {
-    "@types/node": "^25.2.3"
+    "@lhci/cli": "^0.15.1",
+    "@nuxt/test-utils": "^4.0.0",
+    "@playwright/test": "^1.58.2",
+    "@types/node": "^25.2.3",
+    "@vue/test-utils": "^2.4.6",
+    "happy-dom": "^20.7.0",
+    "playwright": "^1.58.2",
+    "vitest": "^4.0.18"
   }
 }

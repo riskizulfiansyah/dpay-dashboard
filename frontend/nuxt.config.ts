@@ -13,6 +13,7 @@ export default defineNuxtConfig({
       apiBaseUrl: apiUrl,
     },
   },
+  ssr: process.env.NUXT_E2E !== 'true',
   vite: {
     plugins: [tailwindcss() as any],
   },
@@ -25,7 +26,7 @@ export default defineNuxtConfig({
   nitro: {
     routeRules: {
       '/api/**': {
-        proxy: `${apiUrl}/**`
+        proxy: process.env.NUXT_E2E === 'true' ? undefined : `${apiUrl}/**`
       }
     }
   }
